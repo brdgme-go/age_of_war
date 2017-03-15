@@ -2,67 +2,68 @@ package age_of_war
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/brdgme-go/render"
 )
 
 func (g *Game) Render(player *int) string {
-	layout := [][]interface{}{
-		{render.Centred(render.Bold("Current roll"))},
-		{render.Centred(strings.Join(RenderDice(g.CurrentRoll), "   "))},
-		{},
+	layout := []string{
+		render.Bold("Current roll"),
+		strings.Join(RenderDice(g.CurrentRoll), "   "),
+		"",
 	}
 
 	if g.CurrentlyAttacking != -1 {
-		layout = append(layout, [][]interface{}{
-			{render.Centred(render.Bold("Currently attacking"))},
-			{},
-			{render.Centred(g.RenderCastle(
+		layout = append(layout, []string{
+			render.Bold("Currently attacking"),
+			"",
+			g.RenderCastle(
 				g.CurrentlyAttacking,
 				g.CurrentRoll,
-			))},
-			{},
+			),
+			"",
 		}...)
 	}
 
-	layout = append(layout, [][]interface{}{
-		{},
-		{render.Centred(render.Bold("Castles"))},
-		{},
+	layout = append(layout, []string{
+		"",
+		render.Bold("Castles"),
+		"",
 	}...)
-	layout = append(layout, []interface{}{
-		render.Centred(g.RenderCastles()),
-	})
+	layout = append(layout, g.RenderCastles())
 
 	scores := g.Scores()
 	scoreStrs := make([]string, g.Players)
 	for p := 0; p < g.Players; p++ {
 		scoreStrs[p] = fmt.Sprintf(
-			"{{player %d}}: {{b}}%d{{_b}}",
-			p,
-			scores[p],
+			"%s: %s",
+			render.Player(p),
+			render.Bold(strconv.Itoa(scores[p])),
 		)
 	}
-	layout = append(layout, [][]interface{}{
-		{},
-		{render.Centred(render.Bold("Scores"))},
-		{render.Centred(strings.Join(scoreStrs, "   "))},
+	layout = append(layout, []string{
+		"",
+		render.Bold("Scores"),
+		strings.Join(scoreStrs, "   "),
 	}...)
 
-	return render.Table(layout, 0, 0)
+	return render.Layout(layout)
 }
 
 func (g *Game) RenderCastles() string {
-	cells := [][]interface{}{}
-	row := []interface{}{}
+	cells := [][]render.Cell{}
+	row := []render.Cell{}
 	lastClan := -1
 	conqueredClans := map[int]bool{}
 	for i, c := range Castles {
 		if lastClan != -1 && c.Clan != lastClan && len(row) > 0 {
-			cells = append(cells, []interface{}{render.Centred(render.Table(
-				[][]interface{}{row}, 0, 6))})
-			row = []interface{}{}
+			cells = append(cells, []render.Cell{
+				render.Cel(
+					render.Table(
+						[][]render.Cell{row}, 0, 6), render.Center)})
+			row = []render.Cell{}
 		}
 		conquered, ok := conqueredClans[c.Clan]
 		if !ok {
@@ -70,70 +71,89 @@ func (g *Game) RenderCastles() string {
 			conquered, conqueredBy = g.ClanConquered(c.Clan)
 			conqueredClans[c.Clan] = conquered
 			if conquered {
-				cells = append(cells, []interface{}{
-					render.Centred(fmt.Sprintf(
-						"%s has been conquered by {{player %d}} for {{b}}%d{{_b}} points",
+				cells = append(cells, []render.Cell{render.Cel(
+					fmt.Sprintf(
+						"%s has been conquered by %s for %s points",
 						RenderClan(c.Clan),
-						conqueredBy,
-						ClanSetPoints[c.Clan],
-					)),
+						render.Player(conqueredBy),
+						render.Bold(strconv.Itoa(ClanSetPoints[c.Clan])),
+					), render.Center),
 				})
 			}
 		}
 		if !conquered {
-			row = append(row, g.RenderCastle(i, g.CurrentRoll))
+			row = append(row, render.Cel(
+				g.RenderCastle(i, g.CurrentRoll),
+				render.Center,
+			))
 		}
 		lastClan = c.Clan
 	}
 	if len(row) > 0 {
-		cells = append(cells, []interface{}{render.Centred(render.Table(
-			[][]interface{}{row}, 0, 6))})
+		cells = append(cells, []render.Cell{render.Cel(
+			render.Table(
+				[][]render.Cell{row}, 0, 6),
+			render.Center,
+		)})
 	}
 	return render.Table(cells, 1, 6)
 }
 
 func (g *Game) RenderCastle(cIndex int, roll []int) string {
 	c := Castles[cIndex]
-	cells := [][]interface{}{
-		{render.Centred(fmt.Sprintf(
-			"%s (%d)",
-			c.RenderName(),
-			c.Points,
-		))},
+	cells := [][]render.Cell{{
+		render.Cel(
+			fmt.Sprintf(
+				"%s (%d)",
+				c.RenderName(),
+				c.Points,
+			),
+			render.Center,
+		)},
 	}
 	if g.Conquered[cIndex] {
-		cells = append(cells, []interface{}{render.Centred(fmt.Sprintf(
-			"({{player %d}})",
-			g.CastleOwners[cIndex],
-		))})
+		cells = append(cells, []render.Cell{
+			render.Cel(
+				fmt.Sprintf(
+					"(%s)",
+					render.Player(g.CastleOwners[cIndex]),
+				),
+				render.Center,
+			)})
 	}
 	for i, l := range c.CalcLines(g.Conquered[cIndex]) {
-		row := []interface{}{render.Markup(fmt.Sprintf(
-			"%d.",
-			i+1,
-		), render.Gray, false)}
+		row := []render.Cell{render.Cel(
+			render.Fg(render.Grey, fmt.Sprintf(
+				"%d.",
+				i+1,
+			)),
+		)}
 		canAfford, _ := l.CanAfford(g.CurrentRoll)
 		if (g.CurrentlyAttacking == cIndex || g.CurrentlyAttacking == -1) &&
 			(!g.Conquered[cIndex] || g.CastleOwners[cIndex] != g.CurrentPlayer) &&
 			!g.CompletedLines[i] && canAfford {
-			row = append(row, render.Markup("X ", render.Green, true))
+			row = append(row, render.Cel(
+				render.Bold(render.Fg(render.Green, "X ")),
+			))
 		} else {
-			row = append(row, "  ")
+			row = append(row, render.Cel(
+				"  ",
+			))
 		}
 		if g.CurrentlyAttacking == cIndex && g.CompletedLines[i] {
-			row = append(row, render.Colour("complete", render.Gray))
+			row = append(row, render.Cel(render.Fg(render.Grey, "complete")))
 		} else {
 			row = append(row, l.RenderRow()...)
 		}
-		cells = append(cells, []interface{}{
-			render.Table([][]interface{}{row}, 0, 1),
+		cells = append(cells, []render.Cell{
+			render.Cel(render.Table([][]render.Cell{row}, 0, 1)),
 		})
 	}
 	return render.Table(cells, 0, 0)
 }
 
 func RenderDie(die int) string {
-	return render.Markup(DiceStrings[die], DiceColours[die], true)
+	return render.Bold(render.Fg(DiceColours[die], DiceStrings[die]))
 }
 
 func RenderDice(dice []int) []string {
@@ -149,28 +169,28 @@ func RenderDice(dice []int) []string {
 }
 
 func RenderInf(n int) string {
-	return render.Markup(fmt.Sprintf("%d inf", n), InfantryColour, true)
+	return render.Bold(render.Fg(InfantryColour, fmt.Sprintf("%d inf", n)))
 }
 
 func (c Castle) RenderName() string {
-	return render.Markup(c.Name, ClanColours[c.Clan], true)
+	return render.Bold(render.Fg(ClanColours[c.Clan], c.Name))
 }
 
 func RenderClan(clan int) string {
-	return render.Markup(ClanNames[clan], ClanColours[clan], true)
+	return render.Bold(render.Fg(ClanColours[clan], ClanNames[clan]))
 }
 
-func (l Line) RenderRow() []interface{} {
-	row := []interface{}{}
+func (l Line) RenderRow() []render.Cell {
+	row := []render.Cell{}
 	for _, s := range l.Symbols {
-		row = append(row, RenderDie(s))
+		row = append(row, render.Cel(RenderDie(s)))
 	}
 	if l.Infantry > 0 {
-		row = append(row, RenderInf(l.Infantry))
+		row = append(row, render.Cel(RenderInf(l.Infantry)))
 	}
 	return row
 }
 
 func (l Line) String() string {
-	return render.Table([][]interface{}{l.RenderRow()}, 0, 2)
+	return render.Table([][]render.Cell{l.RenderRow()}, 0, 2)
 }

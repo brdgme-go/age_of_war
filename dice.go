@@ -34,11 +34,11 @@ var DiceStrings = map[int]string{
 
 var InfantryColour = render.Blue
 
-var DiceColours = map[int]string{
+var DiceColours = map[int]render.Color{
 	Dice1Infantry: InfantryColour,
 	Dice2Infantry: InfantryColour,
 	Dice3Infantry: InfantryColour,
-	DiceArchery:   render.Magenta,
+	DiceArchery:   render.Purple,
 	DiceCavalry:   render.Green,
 	DiceDaimyo:    render.Red,
 }
@@ -61,8 +61,8 @@ func RollN(n int) []int {
 func (g *Game) Roll(n int) brdgme.Log {
 	g.CurrentRoll = RollN(n)
 	return brdgme.NewPublicLog(fmt.Sprintf(
-		"{{player %d}} rolled  %s",
-		g.CurrentPlayer,
+		"%s rolled  %s",
+		render.Player(g.CurrentPlayer),
 		strings.Join(RenderDice(g.CurrentRoll), "  "),
 	))
 }

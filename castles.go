@@ -43,10 +43,10 @@ var ClanNames = map[int]string{
 	ClanShimazu:   "Shimazu",
 }
 
-var ClanColours = map[int]string{
+var ClanColours = map[int]render.Color{
 	ClanOda:       render.Yellow,
-	ClanTokugawa:  render.Gray,
-	ClanUesugi:    render.Magenta,
+	ClanTokugawa:  render.Grey,
+	ClanUesugi:    render.Purple,
 	ClanMori:      render.Red,
 	ClanChosokabe: render.Black,
 	ClanShimazu:   render.Green,
