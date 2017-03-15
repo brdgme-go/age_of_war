@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/brdgme-go/brdgme"
+	"github.com/brdgme-go/render"
 )
 
 var rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -116,13 +117,13 @@ func (g *Game) CheckEndOfTurn() (bool, []brdgme.Log) {
 			suffix := ""
 			if g.Conquered[g.CurrentlyAttacking] {
 				suffix = fmt.Sprintf(
-					" from {{player %d}}",
-					g.CastleOwners[g.CurrentlyAttacking],
+					" from %s",
+					render.Player(g.CastleOwners[g.CurrentlyAttacking]),
 				)
 			}
 			logs = append(logs, brdgme.NewPublicLog(fmt.Sprintf(
-				"{{player %d}} conquered the castle %s%s",
-				g.CurrentPlayer,
+				"%s conquered the castle %s%s",
+				render.Player(g.CurrentPlayer),
 				c.RenderName(),
 				suffix,
 			)))
@@ -130,8 +131,8 @@ func (g *Game) CheckEndOfTurn() (bool, []brdgme.Log) {
 			g.CastleOwners[g.CurrentlyAttacking] = g.CurrentPlayer
 			if clanConquered, _ := g.ClanConquered(c.Clan); clanConquered {
 				logs = append(logs, brdgme.NewPublicLog(fmt.Sprintf(
-					"{{player %d}} conquered the clan %s",
-					g.CurrentPlayer,
+					"%s conquered the clan %s",
+					render.Player(g.CurrentPlayer),
 					RenderClan(c.Clan),
 				)))
 			}
@@ -198,8 +199,8 @@ func (g *Game) FailedAttackMessage() brdgme.Log {
 		target = Castles[g.CurrentlyAttacking].RenderName()
 	}
 	return brdgme.NewPublicLog(fmt.Sprintf(
-		"{{player %d}} failed to conquer %s",
-		g.CurrentPlayer,
+		"%s failed to conquer %s",
+		render.Player(g.CurrentPlayer),
 		target,
 	))
 }

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/brdgme-go/brdgme"
+	"github.com/brdgme-go/render"
 )
 
 func (g *Game) LineCommand(
@@ -52,10 +53,10 @@ func (g *Game) Line(player, line int) ([]brdgme.Log, error) {
 	}
 	logs := []brdgme.Log{
 		brdgme.NewPublicLog(fmt.Sprintf(
-			"{{player %d}} completed %s with {{b}}%d{{_b}} %s",
-			player,
+			"%s completed %s with %s %s",
+			render.Player(player),
 			lines[line].String(),
-			with,
+			render.Bold(strconv.Itoa(with)),
 			brdgme.Plural(with, "die"),
 		)),
 	}

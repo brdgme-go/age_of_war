@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/brdgme-go/brdgme"
+	"github.com/brdgme-go/render"
 )
 
 func (g *Game) AttackCommand(
@@ -52,8 +53,8 @@ func (g *Game) Attack(player, castle int) ([]brdgme.Log, error) {
 	}
 	g.CurrentlyAttacking = castle
 	logs := []brdgme.Log{brdgme.NewPublicLog(fmt.Sprintf(
-		"{{player %d}} is attacking:\n%s",
-		player,
+		"%s is attacking:\n%s",
+		render.Player(player),
 		g.RenderCastle(castle, []int{}),
 	))}
 	_, endLogs := g.CheckEndOfTurn()
