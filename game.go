@@ -27,34 +27,35 @@ type Game struct {
 	CurrentRoll        []int
 }
 
-func (g *Game) Command(player int, input string, playerNames []string) ([]brdgme.Log, string, error) {
+func (g *Game) Command(player int, input string, playerNames []string) ([]brdgme.Log, bool, string, error) {
 	cr := brdgme.NewReader(bytes.NewBufferString(input))
 	cr.ReadSpace()
 	command, err := cr.ReadWord()
 	cr.ReadSpace()
 	if err != nil {
-		return nil, input, fmt.Errorf("unable to read command: %s", err)
+		return nil, false, input, fmt.Errorf("unable to read command: %s", err)
 	}
 	var (
-		logs []brdgme.Log
+		logs    []brdgme.Log
+		canUndo bool
 	)
 	switch strings.ToLower(command) {
 	case "attack":
-		logs, err = g.AttackCommand(player, cr)
+		logs, canUndo, err = g.AttackCommand(player, cr)
 	case "line":
-		logs, err = g.LineCommand(player, cr)
+		logs, canUndo, err = g.LineCommand(player, cr)
 	case "roll":
-		logs, err = g.RollCommand(player, cr)
+		logs, canUndo, err = g.RollCommand(player, cr)
 	default:
-		return logs, input, fmt.Errorf("unknown command: %s", command)
+		return logs, false, input, fmt.Errorf("unknown command: %s", command)
 	}
 	remaining := input
 	if err == nil {
 		if remaining, err = cr.ReadAll(); err != nil {
-			return logs, input, fmt.Errorf("unable to read remaining command: %s", err)
+			return logs, false, input, fmt.Errorf("unable to read remaining command: %s", err)
 		}
 	}
-	return logs, remaining, err
+	return logs, canUndo, remaining, err
 }
 
 func (g *Game) Name() string {

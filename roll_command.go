@@ -10,16 +10,16 @@ import (
 func (g *Game) RollCommand(
 	player int,
 	input *brdgme.Reader,
-) ([]brdgme.Log, error) {
+) ([]brdgme.Log, bool, error) {
 	args, err := input.ReadLineArgs()
 	if err != nil {
-		return nil, fmt.Errorf("unable to check arguments to roll command: %s", err)
+		return nil, false, fmt.Errorf("unable to check arguments to roll command: %s", err)
 	}
 	if len(args) > 0 {
-		return nil, errors.New("didn't expect any argument for roll")
+		return nil, false, errors.New("didn't expect any argument for roll")
 	}
 	logs, err := g.RollForPlayer(player)
-	return logs, err
+	return logs, false, err
 }
 
 func RollCommandUsage() string {

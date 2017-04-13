@@ -11,10 +11,10 @@ import (
 func (g *Game) AttackCommand(
 	pNum int,
 	input *brdgme.Reader,
-) ([]brdgme.Log, error) {
+) ([]brdgme.Log, bool, error) {
 	args, err := input.ReadLineArgs()
 	if err != nil || len(args) != 1 {
-		return nil, errors.New("please specify a castle to attack")
+		return nil, false, errors.New("please specify a castle to attack")
 	}
 
 	castleNames := []string{}
@@ -23,11 +23,11 @@ func (g *Game) AttackCommand(
 	}
 	castle, err := brdgme.MatchStringInStrings(args[0], castleNames)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	logs, err := g.Attack(pNum, castle)
-	return logs, err
+	return logs, true, err
 }
 
 func AttackUsage() string {
