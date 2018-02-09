@@ -2,7 +2,6 @@ package age_of_war
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -27,7 +26,30 @@ type Game struct {
 	CurrentRoll        []int
 }
 
-func (g *Game) Command(player int, input string, playerNames []string) ([]brdgme.Log, bool, string, error) {
+var _ brdgme.Gamer = &Game{}
+
+func (g *Game) PlayerCount() int {
+	return g.Players
+}
+
+func (g *Game) PlayerCounts() []int {
+	return []int{2, 3, 4, 5, 6}
+}
+
+func (g *Game) Status() brdgme.Status {
+	if g.IsFinished() {
+		return brdgme.StatusFinished{
+			Placings: g.Placings(),
+			Stats:    []interface{}{},
+		}.ToStatus()
+	}
+	return brdgme.StatusActive{
+		WhoseTurn:  g.WhoseTurn(),
+		Eliminated: []int{},
+	}.ToStatus()
+}
+
+func (g *Game) Command(player int, input string, playerNames []string) (brdgme.CommandResponse, error) {
 	cr := brdgme.NewReader(bytes.NewBufferString(input))
 	cr.ReadSpace()
 	command, err := cr.ReadWord()
@@ -58,23 +80,7 @@ func (g *Game) Command(player int, input string, playerNames []string) ([]brdgme
 	return logs, canUndo, remaining, err
 }
 
-func (g *Game) Name() string {
-	return "Age of War"
-}
-
-func (g *Game) Identifier() string {
-	return "age_of_war"
-}
-
-func (g *Game) Encode() ([]byte, error) {
-	return json.Marshal(g)
-}
-
-func (g *Game) Decode(data []byte) error {
-	return json.Unmarshal(data, g)
-}
-
-func (g *Game) Start(players int) ([]brdgme.Log, error) {
+func (g *Game) New(players int) ([]brdgme.Log, error) {
 	if players < 2 || players > 6 {
 		return nil, errors.New("only for 2 to 6 players")
 	}
@@ -85,6 +91,14 @@ func (g *Game) Start(players int) ([]brdgme.Log, error) {
 	g.CompletedLines = map[int]bool{}
 
 	return []brdgme.Log{g.StartTurn()}, nil
+}
+
+func (g *Game) PubState() interface{} {
+	return g
+}
+
+func (g *Game) PlayerState(player int) interface{} {
+	return g.PubState()
 }
 
 func (g *Game) StartTurn() brdgme.Log {
@@ -234,10 +248,7 @@ func (g *Game) IsFinished() bool {
 	return len(g.Conquered) == len(Castles)
 }
 
-func (g *Game) Winners() []int {
-	if !g.IsFinished() {
-		return []int{}
-	}
+func (g *Game) Placings() []int {
 	// Winner is determined by score, with ties broken by conquered clans.
 	playerConqueredClans := map[int]int{}
 	for _, clan := range Clans {
@@ -245,19 +256,13 @@ func (g *Game) Winners() []int {
 			playerConqueredClans[by]++
 		}
 	}
-	maxScore := 0
-	winners := []int{}
-	for p, s := range g.Scores() {
-		score := s*10 + playerConqueredClans[p]
-		if p == 0 || score > maxScore {
-			maxScore = score
-			winners = []int{}
-		}
-		if score == maxScore {
-			winners = append(winners, p)
-		}
+	scores := g.Scores()
+	metrics := [][]int{}
+	for p := 0; p < g.Players; p++ {
+		metrics[p] = []int{scores[p], playerConqueredClans[p]}
 	}
-	return winners
+
+	return brdgme.GenPlacings(metrics)
 }
 
 func (g *Game) WhoseTurn() []int {

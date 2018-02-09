@@ -8,7 +8,11 @@ import (
 	"github.com/brdgme-go/render"
 )
 
-func (g *Game) Render(player *int) string {
+func (g *Game) PlayerRender(player int) string {
+	return g.PubRender()
+}
+
+func (g *Game) PubRender() string {
 	layout := []string{
 		render.Bold("Current roll"),
 		strings.Join(RenderDice(g.CurrentRoll), "   "),

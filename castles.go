@@ -60,6 +60,10 @@ type Castle struct {
 	Lines []Line
 }
 
+func (c Castle) String() string {
+	return c.Name
+}
+
 // MinDice is the minimum dice required to conquer this castle.
 func (c Castle) MinDice() int {
 	min := 0
@@ -269,4 +273,12 @@ var Castles = []Castle{
 			{Infantry: 4},
 		},
 	},
+}
+
+var castleEnumParserValues = map[string]interface{}{}
+
+func init() {
+	for k, c := range Castles {
+		castleEnumParserValues[c.Name] = k
+	}
 }
