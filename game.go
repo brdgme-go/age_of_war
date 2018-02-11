@@ -227,6 +227,15 @@ func (g *Game) Scores() map[int]int {
 	return scores
 }
 
+func (g *Game) Points() []float32 {
+	scores := g.Scores()
+	points := make([]float32, g.Players)
+	for p := 0; p < g.Players; p++ {
+		points[p] = float32(scores[p])
+	}
+	return points
+}
+
 func (g *Game) IsFinished() bool {
 	return len(g.Conquered) == len(Castles)
 }
