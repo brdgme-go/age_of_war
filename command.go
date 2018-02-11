@@ -39,8 +39,18 @@ var castleParser = brdgme.Enum{
 
 var attackParser = brdgme.Map{
 	Parser: brdgme.Chain{
-		brdgme.Token("attack"),
-		brdgme.AfterSpace(castleParser),
+		brdgme.Doc{
+			Name:   "attack",
+			Desc:   "attack a castle",
+			Parser: brdgme.Token("attack"),
+		},
+		brdgme.AfterSpace(
+			brdgme.Doc{
+				Name:   "castle",
+				Desc:   "the castle to attack",
+				Parser: castleParser,
+			},
+		),
 	},
 	Func: func(value interface{}) interface{} {
 		return attackCommand{
@@ -51,8 +61,18 @@ var attackParser = brdgme.Map{
 
 var lineParser = brdgme.Map{
 	Parser: brdgme.Chain{
-		brdgme.Token("line"),
-		brdgme.AfterSpace(brdgme.Int{}),
+		brdgme.Doc{
+			Name:   "line",
+			Desc:   "complete a castle line",
+			Parser: brdgme.Token("line"),
+		},
+		brdgme.AfterSpace(
+			brdgme.Doc{
+				Name:   "line",
+				Desc:   "the castle line to complete",
+				Parser: brdgme.Int{},
+			},
+		),
 	},
 	Func: func(value interface{}) interface{} {
 		return lineCommand{
@@ -62,7 +82,11 @@ var lineParser = brdgme.Map{
 }
 
 var rollParser = brdgme.Map{
-	Parser: brdgme.Token("roll"),
+	Parser: brdgme.Doc{
+		Name:   "roll",
+		Desc:   "discard one dice and roll the rest",
+		Parser: brdgme.Token("roll"),
+	},
 	Func: func(value interface{}) interface{} {
 		return rollCommand{}
 	},
