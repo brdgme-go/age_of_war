@@ -249,7 +249,7 @@ func (g *Game) Placings() []int {
 		}
 	}
 	scores := g.Scores()
-	metrics := [][]int{}
+	metrics := make([][]int, g.Players)
 	for p := 0; p < g.Players; p++ {
 		metrics[p] = []int{scores[p], playerConqueredClans[p]}
 	}
