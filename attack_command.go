@@ -10,28 +10,15 @@ import (
 
 func (g *Game) AttackCommand(
 	pNum int,
-	input *brdgme.Reader,
-) ([]brdgme.Log, bool, error) {
-	args, err := input.ReadLineArgs()
-	if err != nil || len(args) != 1 {
-		return nil, false, errors.New("please specify a castle to attack")
-	}
-
-	castleNames := []string{}
-	for _, c := range Castles {
-		castleNames = append(castleNames, c.Name)
-	}
-	castle, err := brdgme.MatchStringInStrings(args[0], castleNames)
-	if err != nil {
-		return nil, false, err
-	}
-
+	castle int,
+	remaining string,
+) (brdgme.CommandResponse, error) {
 	logs, err := g.Attack(pNum, castle)
-	return logs, true, err
-}
-
-func AttackUsage() string {
-	return "{{b}}attack #{{_b}} to attack a castle, eg. {{b}}attack kita{{_b}}"
+	return brdgme.CommandResponse{
+		Logs:      logs,
+		CanUndo:   false,
+		Remaining: remaining,
+	}, err
 }
 
 func (g *Game) CanAttack(player int) bool {

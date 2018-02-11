@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGame_Start(t *testing.T) {
+func TestGame_New(t *testing.T) {
 	g := &Game{}
-	_, err := g.Start(3)
+	_, err := g.New(3)
 	assert.NoError(t, err)
 }

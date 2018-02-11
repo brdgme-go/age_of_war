@@ -1,41 +1,69 @@
 package age_of_war
 
-import "github.com/brdgme-go/brdgme"
+import (
+	"github.com/brdgme-go/brdgme"
+)
 
 type attackCommand struct {
 	castle int
 }
 
-func (g *Game) CommandSpec(player int) *brdgme.Spec {
-	oneOf := brdgme.OneOf{}
-	if g.CanAttack(player) {
-		oneOf = append(oneOf, g.attackParser(player))
-	}
-	spec := oneOf.ToSpec()
-	return &spec
+type lineCommand struct {
+	line int
 }
 
-func (g *Game) attackParser(player int) brdgme.Spec {
-	return brdgme.Chain{
-		brdgme.Token("attack").ToSpec(),
-		brdgme.AfterSpace(castleParser).ToSpec(),
-	}.ToSpec()
+type rollCommand struct{}
+
+func (g *Game) CommandParser(player int) brdgme.Parser {
+	oneOf := brdgme.OneOf{}
+	if g.CanAttack(player) {
+		oneOf = append(oneOf, attackParser)
+	}
+	if g.CanLine(player) {
+		oneOf = append(oneOf, lineParser)
+	}
+	if g.CanRoll(player) {
+		oneOf = append(oneOf, rollParser)
+	}
+	return oneOf
+}
+
+func (g *Game) CommandSpec(player int) *brdgme.Spec {
+	spec := g.CommandParser(player).ToSpec()
+	return &spec
 }
 
 var castleParser = brdgme.Enum{
 	Values: castleEnumParserValues,
-}.ToSpec()
+}
 
 var attackParser = brdgme.Map{
-	Spec: brdgme.Chain{
-		brdgme.Token("attack").ToSpec(),
-		brdgme.AfterSpace(castleParser).ToSpec(),
-	}.ToSpec(),
+	Parser: brdgme.Chain{
+		brdgme.Token("attack"),
+		brdgme.AfterSpace(castleParser),
+	},
 	Func: func(value interface{}) interface{} {
-		parts := value.([]interface{})
-		castle := parts[1].(int)
 		return attackCommand{
-			castle: castle,
+			castle: value.([]interface{})[1].(int),
 		}
+	},
+}
+
+var lineParser = brdgme.Map{
+	Parser: brdgme.Chain{
+		brdgme.Token("line"),
+		brdgme.AfterSpace(brdgme.Int{}),
+	},
+	Func: func(value interface{}) interface{} {
+		return lineCommand{
+			line: value.([]interface{})[1].(int),
+		}
+	},
+}
+
+var rollParser = brdgme.Map{
+	Parser: brdgme.Token("roll"),
+	Func: func(value interface{}) interface{} {
+		return rollCommand{}
 	},
 }

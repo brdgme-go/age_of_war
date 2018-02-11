@@ -2,28 +2,20 @@ package age_of_war
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/brdgme-go/brdgme"
 )
 
 func (g *Game) RollCommand(
 	player int,
-	input *brdgme.Reader,
-) ([]brdgme.Log, bool, error) {
-	args, err := input.ReadLineArgs()
-	if err != nil {
-		return nil, false, fmt.Errorf("unable to check arguments to roll command: %s", err)
-	}
-	if len(args) > 0 {
-		return nil, false, errors.New("didn't expect any argument for roll")
-	}
+	remaining string,
+) (brdgme.CommandResponse, error) {
 	logs, err := g.RollForPlayer(player)
-	return logs, false, err
-}
-
-func RollCommandUsage() string {
-	return "{{b}}roll{{_b}} to discard a die and roll the rest"
+	return brdgme.CommandResponse{
+		Logs:      logs,
+		CanUndo:   false,
+		Remaining: remaining,
+	}, err
 }
 
 func (g *Game) CanRoll(player int) bool {

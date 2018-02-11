@@ -11,23 +11,15 @@ import (
 
 func (g *Game) LineCommand(
 	player int,
-	input *brdgme.Reader,
-) ([]brdgme.Log, bool, error) {
-	args, err := input.ReadLineArgs()
-	if err != nil || len(args) != 1 {
-		return nil, false, errors.New("please specify a line to complete")
-	}
-
-	line, err := strconv.Atoi(args[0])
-	if err != nil || line <= 0 {
-		return nil, false, errors.New("the line must be a number greater than 0")
-	}
+	line int,
+	remaining string,
+) (brdgme.CommandResponse, error) {
 	logs, err := g.Line(player, line-1)
-	return logs, false, err
-}
-
-func LineCommandUsage(player string, context interface{}) string {
-	return "{{b}}line #{{_b}} to complete a line in the castle you are attacking, eg. {{b}}line 2{{_b}}"
+	return brdgme.CommandResponse{
+		Logs:      logs,
+		CanUndo:   false,
+		Remaining: remaining,
+	}, err
 }
 
 func (g *Game) CanLine(player int) bool {

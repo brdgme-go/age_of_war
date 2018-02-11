@@ -1,11 +1,9 @@
 package age_of_war
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/brdgme-go/brdgme"
@@ -50,34 +48,19 @@ func (g *Game) Status() brdgme.Status {
 }
 
 func (g *Game) Command(player int, input string, playerNames []string) (brdgme.CommandResponse, error) {
-	cr := brdgme.NewReader(bytes.NewBufferString(input))
-	cr.ReadSpace()
-	command, err := cr.ReadWord()
-	cr.ReadSpace()
+	parseOutput, err := g.CommandParser(player).Parse(input, playerNames)
 	if err != nil {
-		return nil, false, input, fmt.Errorf("unable to read command: %s", err)
+		return brdgme.CommandResponse{}, err
 	}
-	var (
-		logs    []brdgme.Log
-		canUndo bool
-	)
-	switch strings.ToLower(command) {
-	case "attack":
-		logs, canUndo, err = g.AttackCommand(player, cr)
-	case "line":
-		logs, canUndo, err = g.LineCommand(player, cr)
-	case "roll":
-		logs, canUndo, err = g.RollCommand(player, cr)
-	default:
-		return logs, false, input, fmt.Errorf("unknown command: %s", command)
+	switch value := parseOutput.Value.(type) {
+	case attackCommand:
+		return g.AttackCommand(player, value.castle, parseOutput.Remaining)
+	case lineCommand:
+		return g.LineCommand(player, value.line, parseOutput.Remaining)
+	case rollCommand:
+		return g.RollCommand(player, parseOutput.Remaining)
 	}
-	remaining := input
-	if err == nil {
-		if remaining, err = cr.ReadAll(); err != nil {
-			return logs, false, input, fmt.Errorf("unable to read remaining command: %s", err)
-		}
-	}
-	return logs, canUndo, remaining, err
+	return brdgme.CommandResponse{}, errors.New("inexhaustive command handler")
 }
 
 func (g *Game) New(players int) ([]brdgme.Log, error) {
