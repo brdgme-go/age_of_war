@@ -16,7 +16,7 @@ func (g *Game) AttackCommand(
 	logs, err := g.Attack(pNum, castle)
 	return brdgme.CommandResponse{
 		Logs:      logs,
-		CanUndo:   false,
+		CanUndo:   true,
 		Remaining: remaining,
 	}, err
 }
