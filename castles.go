@@ -274,14 +274,3 @@ var Castles = []Castle{
 		},
 	},
 }
-
-var castleEnumParserValues = []brdgme.EnumValue{}
-
-func init() {
-	for k, c := range Castles {
-		castleEnumParserValues = append(castleEnumParserValues, brdgme.EnumValue{
-			Name:  c.Name,
-			Value: k,
-		})
-	}
-}

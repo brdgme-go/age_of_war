@@ -33,8 +33,18 @@ func (g *Game) CommandSpec(player int) *brdgme.Spec {
 	return &spec
 }
 
-var castleParser = brdgme.Enum{
-	Values: castleEnumParserValues,
+func castleParser() brdgme.Enum {
+	values := make([]brdgme.EnumValue, len(Castles))
+	for k, c := range Castles {
+		values[k] = brdgme.EnumValue{
+			Name:  c.Name,
+			Value: k,
+		}
+	}
+
+	return brdgme.Enum{
+		Values: values,
+	}
 }
 
 var attackParser = brdgme.Map{
@@ -48,7 +58,7 @@ var attackParser = brdgme.Map{
 			brdgme.Doc{
 				Name:   "castle",
 				Desc:   "the castle to attack",
-				Parser: castleParser,
+				Parser: castleParser(),
 			},
 		),
 	},
