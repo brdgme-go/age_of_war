@@ -275,10 +275,13 @@ var Castles = []Castle{
 	},
 }
 
-var castleEnumParserValues = map[string]interface{}{}
+var castleEnumParserValues = []brdgme.EnumValue{}
 
 func init() {
 	for k, c := range Castles {
-		castleEnumParserValues[c.Name] = k
+		castleEnumParserValues = append(castleEnumParserValues, brdgme.EnumValue{
+			Name:  c.Name,
+			Value: k,
+		})
 	}
 }
