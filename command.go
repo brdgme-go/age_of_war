@@ -17,7 +17,7 @@ type rollCommand struct{}
 func (g *Game) CommandParser(player int) brdgme.Parser {
 	oneOf := brdgme.OneOf{}
 	if g.CanAttack(player) {
-		oneOf = append(oneOf, attackParser)
+		oneOf = append(oneOf, g.AttackParser())
 	}
 	if g.CanLine(player) {
 		oneOf = append(oneOf, g.LineParser())
@@ -33,40 +33,43 @@ func (g *Game) CommandSpec(player int) *brdgme.Spec {
 	return &spec
 }
 
-func castleParser() brdgme.Enum {
-	values := make([]brdgme.EnumValue, len(Castles))
+func (g *Game) AttackParser() brdgme.Map {
+	remainingCastles := []brdgme.EnumValue{}
 	for k, c := range Castles {
-		values[k] = brdgme.EnumValue{
+		if g.Conquered[k] && g.CastleOwners[k] == g.CurrentPlayer {
+			continue
+		}
+		if conquered, _ := g.ClanConquered(c.Clan); conquered {
+			continue
+		}
+		remainingCastles = append(remainingCastles, brdgme.EnumValue{
 			Name:  c.Name,
 			Value: k,
-		}
+		})
 	}
-
-	return brdgme.Enum{
-		Values: values,
-	}
-}
-
-var attackParser = brdgme.Map{
-	Parser: brdgme.Chain{
-		brdgme.Doc{
-			Name:   "attack",
-			Desc:   "attack a castle",
-			Parser: brdgme.Token("attack"),
-		},
-		brdgme.AfterSpace(
+	return brdgme.Map{
+		Parser: brdgme.Chain{
 			brdgme.Doc{
-				Name:   "castle",
-				Desc:   "the castle to attack",
-				Parser: castleParser(),
+				Name:   "attack",
+				Desc:   "attack a castle",
+				Parser: brdgme.Token("attack"),
 			},
-		),
-	},
-	Func: func(value interface{}) interface{} {
-		return attackCommand{
-			castle: value.([]interface{})[1].(int),
-		}
-	},
+			brdgme.AfterSpace(
+				brdgme.Doc{
+					Name: "castle",
+					Desc: "the castle to attack",
+					Parser: brdgme.Enum{
+						Values: remainingCastles,
+					},
+				},
+			),
+		},
+		Func: func(value interface{}) interface{} {
+			return attackCommand{
+				castle: value.([]interface{})[1].(int),
+			}
+		},
+	}
 }
 
 func (g *Game) LineParser() brdgme.Map {
