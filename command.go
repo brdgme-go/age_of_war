@@ -20,7 +20,7 @@ func (g *Game) CommandParser(player int) brdgme.Parser {
 		oneOf = append(oneOf, attackParser)
 	}
 	if g.CanLine(player) {
-		oneOf = append(oneOf, lineParser)
+		oneOf = append(oneOf, g.LineParser())
 	}
 	if g.CanRoll(player) {
 		oneOf = append(oneOf, rollParser)
@@ -69,26 +69,37 @@ var attackParser = brdgme.Map{
 	},
 }
 
-var lineParser = brdgme.Map{
-	Parser: brdgme.Chain{
-		brdgme.Doc{
-			Name:   "line",
-			Desc:   "complete a castle line",
-			Parser: brdgme.Token("line"),
-		},
-		brdgme.AfterSpace(
+func (g *Game) LineParser() brdgme.Map {
+	remainingLines := []int{}
+	castleLines := len(Castles[g.CurrentlyAttacking].CalcLines(
+		g.Conquered[g.CurrentlyAttacking],
+	))
+	for i := 0; i < castleLines; i++ {
+		if !g.CompletedLines[i] {
+			remainingLines = append(remainingLines, i+1)
+		}
+	}
+	return brdgme.Map{
+		Parser: brdgme.Chain{
 			brdgme.Doc{
 				Name:   "line",
-				Desc:   "the castle line to complete",
-				Parser: brdgme.Int{},
+				Desc:   "complete a castle line",
+				Parser: brdgme.Token("line"),
 			},
-		),
-	},
-	Func: func(value interface{}) interface{} {
-		return lineCommand{
-			line: value.([]interface{})[1].(int),
-		}
-	},
+			brdgme.AfterSpace(
+				brdgme.Doc{
+					Name:   "line",
+					Desc:   "the castle line to complete",
+					Parser: brdgme.EnumFromInts(remainingLines, true),
+				},
+			),
+		},
+		Func: func(value interface{}) interface{} {
+			return lineCommand{
+				line: value.([]interface{})[1].(int),
+			}
+		},
+	}
 }
 
 var rollParser = brdgme.Map{
