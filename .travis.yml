@@ -8,7 +8,7 @@ deploy:
   function_name: age-of-war
   region: us-west-2
   role: arn:aws:iam::161480335654:role/brdgme-game
-  runtime: nodejs4.3
+  runtime: "nodejs8.10"
   handler_name: handler
   access_key_id:
     secure: Ran8hQjP0B0Bip6qs8Yp2CjACPH66vpCrHPoT/FZAarcYgm+kXwXN08p0RYmO0sKCe4i0rN3RpV9uJpZeKYqSEi+XY24YNtAOlyBZqrF0HBUJJAvCi0exvHStyCoB12Uq9gdefpEPo3QRJEJK+NPgFJMUoFj6Xy6Yk+NrYMugBCQdmNu9U6yKSOF0Pky7594e8cgLSiXfSVkOexdLl+0zEQaLJz1zr/gInfdOcLMtGW/GiHqFCOHwm+2mRdmbUjdvLTUJiqUAAwyZ79T3yWzufaT41poTVQyT44fL1RemGZC0n3NtUo7o669uBhonbMn2UcVGT/0CMfTT+btnHA5mXBdqLGuanoZKBWpKZNPQM7ohaqlArz++y9HJTlzyv8wWJuoWigNRxU+yZFqvwNtJPREMA4TFJaY8qLqmTc58BnHnQggCZV9aHmuJGQC/ZuPoDjP2r6FylBI5F+XnvUoPVnEB+NnRuSfcX52Dz+r5DEBjjyxPJTUcYeSibX3c5VW4D3HmCcsU3qqSlYZ3u+XtNhlzGYyn0GYF/66mrSq7VleZWuJt2oyF4hG0GGqpiZgWZjXUqlt8kNjtxeysbzpSCTfra79k5oyu7+Zhgw34s6OxjpHdsn+XDk84h/ulldXkdR8IVMIPSGzO6+Dv5hEGtj+EEILqXpxhWqcqd62G5E=
